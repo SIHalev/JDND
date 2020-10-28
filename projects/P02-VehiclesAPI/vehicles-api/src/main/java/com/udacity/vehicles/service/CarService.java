@@ -8,9 +8,6 @@ import com.udacity.vehicles.domain.car.CarRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -103,7 +100,9 @@ public class CarService {
      * @param id the ID number of the car to delete
      */
     public void delete(Long id) {
-        repository.findById(id).ifPresent(repository::delete);
-        throw new CarNotFoundException(String.format("Car with id %s is missing", id));
+        final Car car = repository.findById(id)
+            .orElseThrow(
+                () -> new CarNotFoundException(String.format("Car with id %s is missing", id)));
+        repository.delete(car);
     }
 }
