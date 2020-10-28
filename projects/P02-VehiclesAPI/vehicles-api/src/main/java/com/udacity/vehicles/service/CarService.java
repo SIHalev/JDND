@@ -51,23 +51,23 @@ public class CarService {
         Car car = repository.findById(id)
             .orElseThrow(() -> new CarNotFoundException(String.format("Car with id %s is missing", id)));
 
-        final Mono<ClientResponse> exchangePrice = pricingWebClient.get()
+        final Mono<Price> monoPrice = pricingWebClient.get()
             .uri(uriBuilder -> uriBuilder.path("/services/price")
                 .queryParam("vehicleId", id)
-                .build())
-            .exchange();
+                .build()).retrieve().bodyToMono(Price.class);
 
         final Location location = car.getLocation();
-        final Mono<ClientResponse> exchangeLocation = mapsWebClient.get()
+        final Mono<Address> monoAddress = mapsWebClient.get()
             .uri(uriBuilder -> uriBuilder.path("/maps")
                 .queryParam("lat", location.getLat())
                 .queryParam("lon", location.getLon())
                 .build())
-            .exchange();
+            .retrieve()
+            .bodyToMono(Address.class);
 
-        return Mono.zip(exchangePrice, exchangeLocation).map(tuple -> {
-            final Price price = tuple.getT1().bodyToMono(Price.class).block();
-            final Address address = tuple.getT2().bodyToMono(Address.class).block();
+        return Mono.zip(monoPrice, monoAddress).map(tuple -> {
+            final Price price = tuple.getT1();
+            final Address address = tuple.getT2();
 
             location.setAddress(address.getAddress());
             location.setCity(address.getCity());
@@ -76,7 +76,6 @@ public class CarService {
             car.setLocation(location);
 
             car.setPrice(price.getPrice().toPlainString());
-
             return car;
         }).block();
     }
