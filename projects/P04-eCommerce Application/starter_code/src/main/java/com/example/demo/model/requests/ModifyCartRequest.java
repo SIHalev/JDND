@@ -13,6 +13,15 @@ public class ModifyCartRequest {
 	@JsonProperty
 	private int quantity;
 
+	public ModifyCartRequest() {
+	}
+
+	public ModifyCartRequest(String username, long itemId, int quantity) {
+		this.username = username;
+		this.itemId = itemId;
+		this.quantity = quantity;
+	}
+
 	public String getUsername() {
 		return username;
 	}
@@ -36,7 +45,5 @@ public class ModifyCartRequest {
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
-	
-	
 
 }
